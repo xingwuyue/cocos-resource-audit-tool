@@ -113,7 +113,7 @@ function createAuditRow(
     sizeBytes: resource.sizeBytes,
     humanSize: formatBytes(resource.sizeBytes),
     percentOfTotal: toPercent(resource.sizeBytes, totalSizeBytes),
-    referenceStatus: getReferenceStatus(category, meta?.uuid, referenceSources, hasInvalidMeta),
+    referenceStatus: getReferenceStatus(category, meta?.uuid, referenceSources, hasInvalidMeta, meta !== undefined),
     uuid: meta?.uuid,
     referenceSourceCount: referenceSources.length,
     referenceSources
@@ -124,11 +124,12 @@ function getReferenceStatus(
   category: ResourceCategory,
   uuid: string | undefined,
   referenceSources: string[],
-  hasInvalidMeta: boolean
+  hasInvalidMeta: boolean,
+  hasMeta: boolean
 ): AuditRow["referenceStatus"] {
   if (hasInvalidMeta) return "unknown";
   if (category === "scene" || category === "prefab") return "entry";
-  if (!uuid) return "no-meta";
+  if (!uuid) return hasMeta ? "unknown" : "no-meta";
   if (referenceSources.length > 0) return "referenced";
   return "unreferenced";
 }

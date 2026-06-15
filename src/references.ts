@@ -3,6 +3,7 @@ import type { AuditWarning, ReferenceInfo } from "./domain.js";
 import { toProjectRelativePath } from "./scanner.js";
 
 const UUID_PATTERN = /[0-9a-zA-Z_-]{6,}/g;
+const UUID_FIELD_PATTERN = /["'](?:__uuid__|uuid)["']\s*:\s*["']([0-9a-zA-Z_-]{6,})["']/g;
 
 export interface ReferenceScanResult {
   referencesByUuid: Map<string, ReferenceInfo>;
@@ -46,9 +47,16 @@ export async function scanReferences(
         }
         referencesByUuid.set(uuid, existing);
       } else if (looksLikeUuid(uuid)) {
-        const sources = unknownReferences.get(uuid) ?? new Set<string>();
-        sources.add(relativePath);
-        unknownReferences.set(uuid, sources);
+        addUnknownReference(unknownReferences, uuid, relativePath);
+      }
+    }
+
+    UUID_FIELD_PATTERN.lastIndex = 0;
+    let matchedUuidField: RegExpExecArray | null;
+    while ((matchedUuidField = UUID_FIELD_PATTERN.exec(text)) !== null) {
+      const uuid = matchedUuidField[1];
+      if (!knownUuids.has(uuid) && looksLikeSerializedUuid(uuid)) {
+        addUnknownReference(unknownReferences, uuid, relativePath);
       }
     }
   }
@@ -56,6 +64,16 @@ export async function scanReferences(
   return { referencesByUuid, warnings, unknownReferences };
 }
 
+function addUnknownReference(unknownReferences: Map<string, Set<string>>, uuid: string, relativePath: string): void {
+  const sources = unknownReferences.get(uuid) ?? new Set<string>();
+  sources.add(relativePath);
+  unknownReferences.set(uuid, sources);
+}
+
 function looksLikeUuid(value: string): boolean {
   return value.length >= 20 && /[-_]/.test(value);
+}
+
+function looksLikeSerializedUuid(value: string): boolean {
+  return /^[0-9a-zA-Z_-]{20,}$/.test(value);
 }

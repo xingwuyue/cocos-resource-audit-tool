@@ -92,4 +92,27 @@ describe("auditProject", () => {
     expect(warning?.message).toContain("assets/Main.scene");
     expect(warning?.message).toContain("1 source");
   });
+
+  it("reports delimiterless Cocos uuid fields as unknown references", async () => {
+    const unknownUuid = "fcmR3XADNLgJ1ByKhqcC5Z";
+    await createMinimalCocosProject(tempRoot);
+    await writeFixtureFile(tempRoot, "assets/Main.scene", JSON.stringify({ __uuid__: unknownUuid }));
+
+    const result = await auditProject(tempRoot);
+    const warning = result.warnings.find((entry) => entry.code === "unknown-reference" && entry.message.includes(unknownUuid));
+
+    expect(warning?.path).toBe("assets/Main.scene");
+  });
+
+  it("marks resources with valid meta but no uuid as unknown", async () => {
+    await createMinimalCocosProject(tempRoot);
+    await writeFixtureFile(tempRoot, "assets/no-uuid.png", Buffer.from([1]));
+    await writeFixtureFile(tempRoot, "assets/no-uuid.png.meta", JSON.stringify({ importer: "image" }));
+
+    const result = await auditProject(tempRoot);
+    const row = result.rows.find((entry) => entry.relativePath === "assets/no-uuid.png");
+
+    expect(row?.referenceStatus).toBe("unknown");
+    expect(result.warnings.some((warning) => warning.code === "missing-meta" && warning.path === "assets/no-uuid.png")).toBe(false);
+  });
 });
