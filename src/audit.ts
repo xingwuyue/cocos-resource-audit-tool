@@ -28,11 +28,13 @@ export async function auditProject(projectPath: string): Promise<AuditResult> {
   const warnings: AuditWarning[] = [];
   const metaByResourcePath = new Map<string, MetaInfo>();
   const resourceByUuid = new Map<string, ResourceFile>();
+  const invalidMetaResourcePaths = new Set<string>();
 
   for (const metaPath of scanned.metaPaths) {
     const parsed = await parseMetaFile(project.projectRoot, metaPath);
     if (parsed.warning) {
       warnings.push(parsed.warning);
+      invalidMetaResourcePaths.add(parsed.resourceRelativePath);
       continue;
     }
 
@@ -48,16 +50,27 @@ export async function auditProject(projectPath: string): Promise<AuditResult> {
 
   const references = await scanReferences(project.projectRoot, scanned.textCandidatePaths, new Set(resourceByUuid.keys()));
   warnings.push(...references.warnings);
-  for (const uuid of references.unknownUuids) {
+  for (const [uuid, sources] of references.unknownReferences) {
+    const sourceRelativePaths = [...sources];
+    const firstSource = sourceRelativePaths[0];
+    const sourceCount = sourceRelativePaths.length;
     warnings.push({
       code: "unknown-reference",
-      message: `Found UUID-like reference that is not present in scanned assets: ${uuid}`
+      path: firstSource,
+      message: `Found UUID-like reference that is not present in scanned assets: ${uuid} (first source: ${firstSource}; ${sourceCount} source${sourceCount === 1 ? "" : "s"})`
     });
   }
 
   const totalSizeBytes = scanned.resources.reduce((sum, resource) => sum + resource.sizeBytes, 0);
   const rows = scanned.resources.map((resource) =>
-    createAuditRow(resource, metaByResourcePath.get(resource.relativePath), references.referencesByUuid, totalSizeBytes, warnings)
+    createAuditRow(
+      resource,
+      metaByResourcePath.get(resource.relativePath),
+      references.referencesByUuid,
+      totalSizeBytes,
+      warnings,
+      invalidMetaResourcePaths.has(resource.relativePath)
+    )
   );
 
   rows.sort((a, b) => {
@@ -79,12 +92,13 @@ function createAuditRow(
   meta: MetaInfo | undefined,
   referencesByUuid: Map<string, { sourceRelativePaths: string[] }>,
   totalSizeBytes: number,
-  warnings: AuditWarning[]
+  warnings: AuditWarning[],
+  hasInvalidMeta: boolean
 ): AuditRow {
   const category = classifyResource(resource, meta);
   const referenceSources = meta?.uuid ? referencesByUuid.get(meta.uuid)?.sourceRelativePaths ?? [] : [];
 
-  if (!meta) {
+  if (!meta && !hasInvalidMeta) {
     warnings.push({
       code: "missing-meta",
       path: resource.relativePath,

@@ -53,4 +53,29 @@ describe("auditProject", () => {
 
     expect(textures.map((row) => row.relativePath)).toEqual(["assets/b.png", "assets/a.png"]);
   });
+
+  it("does not report missing-meta when the matching meta file is invalid", async () => {
+    await createMinimalCocosProject(tempRoot);
+    await writeFixtureFile(tempRoot, "assets/broken.png", Buffer.from([1]));
+    await writeFixtureFile(tempRoot, "assets/broken.png.meta", "{");
+
+    const result = await auditProject(tempRoot);
+
+    expect(result.warnings.some((warning) => warning.code === "invalid-meta" && warning.path === "assets/broken.png.meta")).toBe(true);
+    expect(result.warnings.some((warning) => warning.code === "missing-meta" && warning.path === "assets/broken.png")).toBe(false);
+  });
+
+  it("reports unknown references with source path and source count", async () => {
+    const unknownUuid = "12345678-1234-1234-1234-123456789abc";
+    await createMinimalCocosProject(tempRoot);
+    await writeFixtureFile(tempRoot, "assets/Main.scene", JSON.stringify({ __uuid__: unknownUuid }));
+
+    const result = await auditProject(tempRoot);
+    const warning = result.warnings.find((entry) => entry.code === "unknown-reference");
+
+    expect(warning?.path).toBe("assets/Main.scene");
+    expect(warning?.message).toContain(unknownUuid);
+    expect(warning?.message).toContain("assets/Main.scene");
+    expect(warning?.message).toContain("1 source");
+  });
 });

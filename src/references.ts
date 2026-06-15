@@ -7,7 +7,7 @@ const UUID_PATTERN = /[0-9a-zA-Z_-]{6,}/g;
 export interface ReferenceScanResult {
   referencesByUuid: Map<string, ReferenceInfo>;
   warnings: AuditWarning[];
-  unknownUuids: Set<string>;
+  unknownReferences: Map<string, Set<string>>;
 }
 
 export async function scanReferences(
@@ -17,7 +17,7 @@ export async function scanReferences(
 ): Promise<ReferenceScanResult> {
   const referencesByUuid = new Map<string, ReferenceInfo>();
   const warnings: AuditWarning[] = [];
-  const unknownUuids = new Set<string>();
+  const unknownReferences = new Map<string, Set<string>>();
 
   for (const absolutePath of textCandidatePaths) {
     const relativePath = toProjectRelativePath(projectRoot, absolutePath);
@@ -35,21 +35,25 @@ export async function scanReferences(
       continue;
     }
 
-    const matches = text.match(UUID_PATTERN) ?? [];
-    for (const match of matches) {
-      if (knownUuids.has(match)) {
-        const existing = referencesByUuid.get(match) ?? { uuid: match, sourceRelativePaths: [] };
+    UUID_PATTERN.lastIndex = 0;
+    let matchedUuid: RegExpExecArray | null;
+    while ((matchedUuid = UUID_PATTERN.exec(text)) !== null) {
+      const uuid = matchedUuid[0];
+      if (knownUuids.has(uuid)) {
+        const existing = referencesByUuid.get(uuid) ?? { uuid, sourceRelativePaths: [] };
         if (!existing.sourceRelativePaths.includes(relativePath)) {
           existing.sourceRelativePaths.push(relativePath);
         }
-        referencesByUuid.set(match, existing);
-      } else if (looksLikeUuid(match)) {
-        unknownUuids.add(match);
+        referencesByUuid.set(uuid, existing);
+      } else if (looksLikeUuid(uuid)) {
+        const sources = unknownReferences.get(uuid) ?? new Set<string>();
+        sources.add(relativePath);
+        unknownReferences.set(uuid, sources);
       }
     }
   }
 
-  return { referencesByUuid, warnings, unknownUuids };
+  return { referencesByUuid, warnings, unknownReferences };
 }
 
 function looksLikeUuid(value: string): boolean {
