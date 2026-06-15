@@ -126,8 +126,8 @@ function getReferenceStatus(
   referenceSources: string[],
   hasInvalidMeta: boolean
 ): AuditRow["referenceStatus"] {
-  if (category === "scene" || category === "prefab") return "entry";
   if (hasInvalidMeta) return "unknown";
+  if (category === "scene" || category === "prefab") return "entry";
   if (!uuid) return "no-meta";
   if (referenceSources.length > 0) return "referenced";
   return "unreferenced";

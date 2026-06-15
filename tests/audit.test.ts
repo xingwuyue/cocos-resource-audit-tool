@@ -67,6 +67,18 @@ describe("auditProject", () => {
     expect(result.warnings.some((warning) => warning.code === "missing-meta" && warning.path === "assets/broken.png")).toBe(false);
   });
 
+  it("reports invalid scene meta rows as unknown instead of entry", async () => {
+    await createMinimalCocosProject(tempRoot);
+    await writeFixtureFile(tempRoot, "assets/Main.scene.meta", "{");
+
+    const result = await auditProject(tempRoot);
+    const sceneRow = result.rows.find((row) => row.relativePath === "assets/Main.scene");
+
+    expect(sceneRow?.referenceStatus).toBe("unknown");
+    expect(result.warnings.some((warning) => warning.code === "invalid-meta" && warning.path === "assets/Main.scene.meta")).toBe(true);
+    expect(result.warnings.some((warning) => warning.code === "missing-meta" && warning.path === "assets/Main.scene")).toBe(false);
+  });
+
   it("reports unknown references with source path and source count", async () => {
     const unknownUuid = "12345678-1234-1234-1234-123456789abc";
     await createMinimalCocosProject(tempRoot);
