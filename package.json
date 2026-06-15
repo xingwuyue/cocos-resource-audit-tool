@@ -1,0 +1,31 @@
+{
+  "name": "cocos-resource-audit-tool",
+  "version": "0.1.0",
+  "description": "Audit Cocos Creator resource sizes, categories, and static references.",
+  "type": "module",
+  "bin": {
+    "cocos-resource-audit": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "cocos",
+    "cocos-creator",
+    "asset-audit",
+    "resource-size"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.4"
+  }
+}
