@@ -8,3 +8,5 @@ export * from "./meta.js";
 export * from "./classifier.js";
 export * from "./references.js";
 export * from "./audit.js";
+export * from "./reporters/csv.js";
+export * from "./reporters/html.js";
