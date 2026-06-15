@@ -30,6 +30,46 @@ describe("runCli", () => {
     await expect(readFile(path.join(outputDir, "resource-audit.csv"), "utf8")).resolves.toContain("assets/hero.png");
   });
 
+  it("returns 0 for version output without printing an error", async () => {
+    const output: string[] = [];
+    const outputSpy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: string | Uint8Array) => {
+      output.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    try {
+      const exitCode = await runCli(["node", "cocos-resource-audit", "--version"]);
+
+      expect(exitCode).toBe(0);
+      expect(output.join("")).toContain("0.1.0");
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+      outputSpy.mockRestore();
+    }
+  });
+
+  it("returns 0 for help output without printing an error", async () => {
+    const output: string[] = [];
+    const outputSpy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: string | Uint8Array) => {
+      output.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    try {
+      const exitCode = await runCli(["node", "cocos-resource-audit", "--help"]);
+
+      expect(exitCode).toBe(0);
+      expect(output.join("")).toContain("Usage:");
+      expect(errorSpy).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+      outputSpy.mockRestore();
+    }
+  });
+
   it("returns 1 instead of exiting when project option is missing", async () => {
     const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => {
       throw new Error("process.exit should not be called");

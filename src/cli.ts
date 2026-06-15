@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { Command } from "commander";
+import { Command, CommanderError } from "commander";
 import { auditProject } from "./audit.js";
 import { formatBytes } from "./format.js";
 import { ensureOutputDirectory } from "./project.js";
@@ -42,6 +42,10 @@ export async function runCli(argv: string[] = process.argv): Promise<number> {
     }
     return 0;
   } catch (error) {
+    if (error instanceof CommanderError && error.exitCode === 0) {
+      return 0;
+    }
+
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${message}`);
     return 1;
