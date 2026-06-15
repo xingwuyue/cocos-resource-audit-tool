@@ -1,7 +1,7 @@
 import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { runCli } from "../src/cli.js";
 import { createMinimalCocosProject, writeFixtureFile } from "./fixtures.js";
 
@@ -28,5 +28,23 @@ describe("runCli", () => {
     await expect(access(path.join(outputDir, "resource-audit.html"))).resolves.toBeUndefined();
     await expect(access(path.join(outputDir, "resource-audit.csv"))).resolves.toBeUndefined();
     await expect(readFile(path.join(outputDir, "resource-audit.csv"), "utf8")).resolves.toContain("assets/hero.png");
+  });
+
+  it("returns 1 instead of exiting when project option is missing", async () => {
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => {
+      throw new Error("process.exit should not be called");
+    }) as typeof process.exit);
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    try {
+      const exitCode = await runCli(["node", "cocos-resource-audit"]);
+
+      expect(exitCode).toBe(1);
+      expect(exitSpy).not.toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringMatching(/^Error: /));
+    } finally {
+      errorSpy.mockRestore();
+      exitSpy.mockRestore();
+    }
   });
 });

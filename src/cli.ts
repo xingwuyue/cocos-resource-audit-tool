@@ -17,7 +17,11 @@ export async function runCli(argv: string[] = process.argv): Promise<number> {
     .description("Audit Cocos Creator 3.x resource sizes and static references.")
     .version(version)
     .requiredOption("-p, --project <path>", "Cocos Creator project source directory")
-    .option("-o, --out <path>", "Output directory for reports", "reports");
+    .option("-o, --out <path>", "Output directory for reports", "reports")
+    .exitOverride()
+    .configureOutput({
+      writeErr: () => undefined
+    });
 
   try {
     program.parse(argv);
