@@ -16,6 +16,8 @@ const TEXT_CANDIDATE_EXTENSIONS = new Set([
   ".xml"
 ]);
 
+const STAT_CONCURRENCY = 32;
+
 export interface ScanResult {
   resources: ResourceFile[];
   metaPaths: string[];
@@ -25,38 +27,69 @@ export interface ScanResult {
 export async function scanProjectFiles(project: ValidatedProject): Promise<ScanResult> {
   const allFiles = await walkFiles(project.assetsRoot);
   const metaPathSet = new Set(allFiles.filter((file) => file.endsWith(".meta")));
-  const resources: ResourceFile[] = [];
-  const textCandidatePaths: string[] = [];
+  const resourceEntries = await mapWithConcurrency(
+    allFiles.filter((file) => !file.endsWith(".meta")),
+    STAT_CONCURRENCY,
+    async (absolutePath) => buildResourceEntry(project, absolutePath, metaPathSet)
+  );
 
-  for (const absolutePath of allFiles) {
-    if (absolutePath.endsWith(".meta")) {
-      continue;
-    }
+  return {
+    resources: resourceEntries.map((entry) => entry.resource).sort((a, b) => a.relativePath.localeCompare(b.relativePath)),
+    metaPaths: [...metaPathSet].sort(),
+    textCandidatePaths: resourceEntries
+      .filter((entry) => entry.isTextCandidate)
+      .map((entry) => entry.resource.absolutePath)
+      .sort()
+  };
+}
 
-    const fileStat = await stat(absolutePath);
-    const relativePath = toProjectRelativePath(project.projectRoot, absolutePath);
-    const extension = path.extname(absolutePath).toLowerCase();
-    const metaPath = `${absolutePath}.meta`;
+interface ResourceEntry {
+  resource: ResourceFile;
+  isTextCandidate: boolean;
+}
 
-    resources.push({
+async function buildResourceEntry(
+  project: ValidatedProject,
+  absolutePath: string,
+  metaPathSet: Set<string>
+): Promise<ResourceEntry> {
+  const fileStat = await stat(absolutePath);
+  const relativePath = toProjectRelativePath(project.projectRoot, absolutePath);
+  const extension = path.extname(absolutePath).toLowerCase();
+  const metaPath = `${absolutePath}.meta`;
+
+  return {
+    resource: {
       absolutePath,
       relativePath,
       fileName: path.basename(absolutePath),
       extension,
       sizeBytes: fileStat.size,
       metaPath: metaPathSet.has(metaPath) ? metaPath : undefined
-    });
+    },
+    isTextCandidate: TEXT_CANDIDATE_EXTENSIONS.has(extension)
+  };
+}
 
-    if (TEXT_CANDIDATE_EXTENSIONS.has(extension)) {
-      textCandidatePaths.push(absolutePath);
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await mapper(items[currentIndex]);
     }
   }
 
-  return {
-    resources: resources.sort((a, b) => a.relativePath.localeCompare(b.relativePath)),
-    metaPaths: [...metaPathSet].sort(),
-    textCandidatePaths: textCandidatePaths.sort()
-  };
+  const workerCount = Math.min(concurrency, items.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+  return results;
 }
 
 async function walkFiles(root: string): Promise<string[]> {
