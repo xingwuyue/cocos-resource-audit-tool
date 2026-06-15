@@ -1,5 +1,4 @@
-export const version = "0.1.0";
-
+export { version } from "./version.js";
 export * from "./domain.js";
 export * from "./format.js";
 export * from "./project.js";
@@ -10,3 +9,4 @@ export * from "./references.js";
 export * from "./audit.js";
 export * from "./reporters/csv.js";
 export * from "./reporters/html.js";
+export { runCli } from "./cli.js";
