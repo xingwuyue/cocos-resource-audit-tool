@@ -16,6 +16,8 @@ const HEADERS = [
   "referenceSources"
 ];
 
+const DANGEROUS_CELL_PREFIX = /^[=+\-@\t\r]/;
+
 export async function writeCsvReport(result: AuditResult, outputPath: string): Promise<void> {
   await mkdir(path.dirname(outputPath), { recursive: true });
 
@@ -33,9 +35,19 @@ export async function writeCsvReport(result: AuditResult, outputPath: string): P
         row.uuid,
         row.referenceSourceCount,
         row.referenceSources.join("; ")
-      ].map(escapeCsvCell).join(",")
+      ].map(formatCsvReportCell).join(",")
     )
   ];
 
   await writeFile(outputPath, `${lines.join("\n")}\n`, "utf8");
+}
+
+function formatCsvReportCell(value: string | number | undefined): string {
+  if (typeof value === "number") {
+    return escapeCsvCell(value);
+  }
+
+  const text = value ?? "";
+  const safeText = DANGEROUS_CELL_PREFIX.test(text) ? `'${text}` : text;
+  return escapeCsvCell(safeText);
 }
