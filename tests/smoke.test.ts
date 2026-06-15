@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { version } from "../src/index";
+import { version } from "../src/index.js";
 
 describe("package smoke", () => {
   it("exports a version string", () => {
