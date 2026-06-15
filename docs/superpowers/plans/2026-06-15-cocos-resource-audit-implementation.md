@@ -37,7 +37,9 @@
 **Files:**
 - Create: `package.json`
 - Create: `tsconfig.json`
+- Create: `tsconfig.build.json`
 - Create: `src/index.ts`
+- Create: `src/cli.ts`
 - Create: `tests/smoke.test.ts`
 
 - [ ] **Step 1: Write the failing smoke test**
@@ -46,7 +48,7 @@ Create `tests/smoke.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
-import { version } from "../src/index";
+import { version } from "../src/index.js";
 
 describe("package smoke", () => {
   it("exports a version string", () => {
@@ -69,7 +71,7 @@ Create `package.json`:
     "cocos-resource-audit": "./dist/cli.js"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.build.json",
     "dev": "tsx src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -126,22 +128,60 @@ Create `src/index.ts`:
 export const version = "0.1.0";
 ```
 
-- [ ] **Step 5: Install dependencies**
+- [ ] **Step 5: Add production build configuration**
+
+Create `tsconfig.build.json`:
+
+```json
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["tests/**/*.ts"]
+}
+```
+
+- [ ] **Step 6: Add a minimal CLI placeholder**
+
+Create `src/cli.ts`:
+
+```ts
+#!/usr/bin/env node
+import { version } from "./index.js";
+
+console.log(`cocos-resource-audit ${version}`);
+```
+
+This placeholder only keeps the scaffold's `dev` script and package `bin` target resolvable. Task 7 replaces it with the real audit CLI.
+
+- [ ] **Step 7: Install dependencies**
 
 Run: `npm install`
 
 Expected: `package-lock.json` is created and npm exits with code 0.
 
-- [ ] **Step 6: Run the smoke test**
+- [ ] **Step 8: Run the smoke test**
 
 Run: `npm test -- tests/smoke.test.ts`
 
 Expected: PASS with `package smoke`.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 9: Run scaffold checks**
+
+Run: `npm run typecheck`
+
+Expected: PASS.
+
+Run: `npm run build`
+
+Expected: PASS and `dist/cli.js` exists.
+
+- [ ] **Step 10: Commit**
 
 ```bash
-git add package.json package-lock.json tsconfig.json src/index.ts tests/smoke.test.ts
+git add package.json package-lock.json tsconfig.json tsconfig.build.json src/index.ts src/cli.ts tests/smoke.test.ts
 git commit -m "chore: scaffold TypeScript CLI project"
 ```
 
@@ -161,7 +201,7 @@ Create `tests/format.test.ts`:
 
 ```ts
 import { describe, expect, it } from "vitest";
-import { escapeCsvCell, formatBytes, toPercent } from "../src/format";
+import { escapeCsvCell, formatBytes, toPercent } from "../src/format.js";
 
 describe("formatBytes", () => {
   it("formats bytes using binary units", () => {
@@ -393,9 +433,9 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { scanProjectFiles } from "../src/scanner";
-import { validateProject } from "../src/project";
-import { createMinimalCocosProject, writeFixtureFile } from "./fixtures";
+import { scanProjectFiles } from "../src/scanner.js";
+import { validateProject } from "../src/project.js";
+import { createMinimalCocosProject, writeFixtureFile } from "./fixtures.js";
 
 let tempRoot: string;
 
@@ -641,10 +681,10 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { classifyResource } from "../src/classifier";
-import { parseMetaFile } from "../src/meta";
-import type { ResourceFile } from "../src/domain";
-import { writeFixtureFile } from "./fixtures";
+import { classifyResource } from "../src/classifier.js";
+import { parseMetaFile } from "../src/meta.js";
+import type { ResourceFile } from "../src/domain.js";
+import { writeFixtureFile } from "./fixtures.js";
 
 let tempRoot: string;
 
@@ -860,8 +900,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { auditProject } from "../src/audit";
-import { createMinimalCocosProject, writeFixtureFile } from "./fixtures";
+import { auditProject } from "../src/audit.js";
+import { createMinimalCocosProject, writeFixtureFile } from "./fixtures.js";
 
 let tempRoot: string;
 
@@ -1154,9 +1194,9 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import type { AuditResult } from "../src/domain";
-import { writeCsvReport } from "../src/reporters/csv";
-import { writeHtmlReport } from "../src/reporters/html";
+import type { AuditResult } from "../src/domain.js";
+import { writeCsvReport } from "../src/reporters/csv.js";
+import { writeHtmlReport } from "../src/reporters/html.js";
 
 let tempRoot: string;
 
@@ -1438,8 +1478,8 @@ import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { runCli } from "../src/cli";
-import { createMinimalCocosProject, writeFixtureFile } from "./fixtures";
+import { runCli } from "../src/cli.js";
+import { createMinimalCocosProject, writeFixtureFile } from "./fixtures.js";
 
 let tempRoot: string;
 
@@ -1591,8 +1631,8 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { runCli } from "../src/cli";
-import { writeFixtureFile } from "./fixtures";
+import { runCli } from "../src/cli.js";
+import { writeFixtureFile } from "./fixtures.js";
 
 let tempRoot: string;
 
