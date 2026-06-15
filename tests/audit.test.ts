@@ -60,7 +60,9 @@ describe("auditProject", () => {
     await writeFixtureFile(tempRoot, "assets/broken.png.meta", "{");
 
     const result = await auditProject(tempRoot);
+    const brokenRow = result.rows.find((row) => row.relativePath === "assets/broken.png");
 
+    expect(brokenRow?.referenceStatus).toBe("unknown");
     expect(result.warnings.some((warning) => warning.code === "invalid-meta" && warning.path === "assets/broken.png.meta")).toBe(true);
     expect(result.warnings.some((warning) => warning.code === "missing-meta" && warning.path === "assets/broken.png")).toBe(false);
   });
