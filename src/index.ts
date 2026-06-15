@@ -4,3 +4,5 @@ export * from "./domain.js";
 export * from "./format.js";
 export * from "./project.js";
 export * from "./scanner.js";
+export * from "./meta.js";
+export * from "./classifier.js";
