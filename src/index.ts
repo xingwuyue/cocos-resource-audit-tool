@@ -6,3 +6,5 @@ export * from "./project.js";
 export * from "./scanner.js";
 export * from "./meta.js";
 export * from "./classifier.js";
+export * from "./references.js";
+export * from "./audit.js";
