@@ -14,3 +14,22 @@ describe('Windows one-click launcher', () => {
     expect(script).toContain('resource-audit.html');
   });
 });
+
+describe('Electron desktop launcher', () => {
+  test('declares desktop scripts and UI entry files', async () => {
+    const packageJson = JSON.parse(await readFile(path.join(process.cwd(), 'package.json'), 'utf8')) as {
+      scripts: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+    const main = await readFile(path.join(process.cwd(), 'src/desktop/main.ts'), 'utf8');
+    const preload = await readFile(path.join(process.cwd(), 'src/desktop/preload.ts'), 'utf8');
+    const html = await readFile(path.join(process.cwd(), 'src/desktop/index.html'), 'utf8');
+
+    expect(packageJson.scripts['desktop:build']).toBe('tsc -p tsconfig.build.json');
+    expect(packageJson.scripts['desktop:dev']).toBe('npm run desktop:build && electron dist/desktop/main.js');
+    expect(packageJson.devDependencies.electron).toBeDefined();
+    expect(main).toContain('BrowserWindow');
+    expect(preload).toContain('contextBridge');
+    expect(html).toContain('Cocos Resource Audit');
+  });
+});

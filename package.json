@@ -8,6 +8,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "desktop:build": "tsc -p tsconfig.build.json",
+    "desktop:dev": "npm run desktop:build && electron dist/desktop/main.js",
     "dev": "tsx src/cli.ts",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
@@ -24,6 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
+    "electron": "^42.4.0",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
     "vitest": "^2.0.4"
