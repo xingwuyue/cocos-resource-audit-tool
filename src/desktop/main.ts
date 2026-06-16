@@ -57,7 +57,7 @@ async function createWindow(): Promise<void> {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      preload: path.join(__dirname, "preload.js")
+      preload: path.join(__dirname, "preload.cjs")
     }
   });
 
@@ -71,6 +71,9 @@ async function createWindow(): Promise<void> {
   });
   window.webContents.on("render-process-gone", (_event, details) => {
     log(`render-process-gone reason=${details.reason} exitCode=${details.exitCode}`);
+  });
+  window.webContents.on("console-message", (_event, level, message, line, sourceId) => {
+    log(`console-message level=${level} source=${sourceId}:${line} message=${message}`);
   });
 
   await window.loadFile(path.join(__dirname, "index.html"));

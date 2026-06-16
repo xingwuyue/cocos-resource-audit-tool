@@ -1,4 +1,5 @@
 import type { AuditResult, ReferenceStatus, ResourceCategory } from "../domain.js";
+import type { CocosAuditApi } from "./preload-api.js";
 import type { DashboardFilters } from "./view-model.js";
 import { createDashboardModel, DESKTOP_CATEGORY_LABELS, DESKTOP_REFERENCE_STATUS_LABELS } from "./view-model.js";
 
@@ -40,7 +41,7 @@ render();
 elements.chooseProject.addEventListener("click", async () => {
   setStatus("正在打开目录选择窗口...");
   await runBusy("正在打开目录选择窗口...", async () => {
-    const selectedPath = await window.cocosAudit.selectProject();
+    const selectedPath = await getAuditApi().selectProject();
     if (!selectedPath) {
       setStatus("未选择目录。你也可以手动输入项目目录。");
       return;
@@ -71,7 +72,7 @@ elements.runAudit.addEventListener("click", async () => {
   }
 
   await runBusy("正在扫描资源...", async () => {
-    state.result = await window.cocosAudit.runAudit(state.projectPath as string);
+    state.result = await getAuditApi().runAudit(state.projectPath as string);
     state.outputDirectory = null;
     setStatus("审计完成，可以查看表格或导出报告。");
     render();
@@ -85,7 +86,7 @@ elements.exportReports.addEventListener("click", async () => {
   }
 
   await runBusy("正在导出报告...", async () => {
-    const exported = await window.cocosAudit.exportReports(state.result as AuditResult);
+    const exported = await getAuditApi().exportReports(state.result as AuditResult);
     state.outputDirectory = exported.outputDirectory;
     setStatus(`报告已导出到 ${exported.outputDirectory}`);
     render();
@@ -94,7 +95,7 @@ elements.exportReports.addEventListener("click", async () => {
 
 elements.openOutput.addEventListener("click", async () => {
   if (!state.outputDirectory) return;
-  await window.cocosAudit.openOutputDirectory(state.outputDirectory);
+  await getAuditApi().openOutputDirectory(state.outputDirectory);
 });
 
 elements.categoryFilter.addEventListener("change", () => {
@@ -239,6 +240,14 @@ async function runBusy(message: string, action: () => Promise<void>): Promise<vo
   } finally {
     setBusy(false);
   }
+}
+
+function getAuditApi(): CocosAuditApi {
+  if (!window.cocosAudit) {
+    throw new Error("桌面桥接初始化失败，请重新启动工具。");
+  }
+
+  return window.cocosAudit;
 }
 
 function setBusy(isBusy: boolean): void {

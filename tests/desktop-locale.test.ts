@@ -28,6 +28,8 @@ describe("desktop Simplified Chinese locale", () => {
     expect(renderer).toContain("manualProjectPath");
     expect(renderer).toContain("useManualPath");
     expect(renderer).toContain("正在打开目录选择窗口...");
+    expect(renderer).toContain("桌面桥接初始化失败，请重新启动工具。");
+    expect(renderer).toContain("getAuditApi()");
     expect(renderer).toContain("请选择 Cocos Creator 项目目录。");
     expect(renderer).toContain("资源路径");
     expect(renderer).toContain("资源类型");

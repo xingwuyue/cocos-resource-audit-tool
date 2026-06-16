@@ -13,8 +13,8 @@
     "desktop:dev": "npm run desktop:build && electron dist/desktop/main.js",
     "dev": "tsx src/cli.ts",
     "package:win": "npm run package:win:portable",
-    "package:win:installer": "npm run desktop:build && electron-builder --win nsis --x64",
-    "package:win:portable": "npm run desktop:build && electron-builder --win portable --x64",
+    "package:win:installer": "npm run desktop:build && electron-builder --win --x64 --config.win.target=nsis",
+    "package:win:portable": "npm run desktop:build && electron-builder --win --x64 --config.win.target=portable",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -37,7 +37,6 @@
     ],
     "win": {
       "target": [
-        "nsis",
         "portable"
       ]
     },
