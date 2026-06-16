@@ -6,11 +6,15 @@
   "bin": {
     "cocos-resource-audit": "./dist/cli.js"
   },
+  "main": "dist/desktop/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "desktop:build": "tsc -p tsconfig.build.json",
+    "desktop:build": "tsc -p tsconfig.build.json && node scripts/copy-desktop-assets.mjs",
     "desktop:dev": "npm run desktop:build && electron dist/desktop/main.js",
     "dev": "tsx src/cli.ts",
+    "package:win": "npm run package:win:portable",
+    "package:win:installer": "npm run desktop:build && electron-builder --win nsis --x64",
+    "package:win:portable": "npm run desktop:build && electron-builder --win portable --x64",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
@@ -21,12 +25,36 @@
     "resource-size"
   ],
   "license": "MIT",
+  "build": {
+    "appId": "com.xingwuyue.cocos-resource-audit-tool",
+    "productName": "Cocos Resource Audit Tool",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
   "dependencies": {
     "commander": "^12.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.10",
     "electron": "^42.4.0",
+    "electron-builder": "^26.15.3",
     "tsx": "^4.16.2",
     "typescript": "^5.5.3",
     "vitest": "^2.0.4"

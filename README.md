@@ -76,6 +76,24 @@ npm run desktop:dev
 - 导出 `resource-audit.html` 和 `resource-audit.csv`。
 - 打开导出目录。
 
+## 生成 Windows EXE
+
+生成可直接双击运行的单文件 EXE：
+
+```bash
+npm run package:win:portable
+```
+
+输出位置：
+
+- `release/Cocos Resource Audit Tool 0.1.0.exe`
+
+生成 Windows 安装器：
+
+```bash
+npm run package:win:installer
+```
+
 ## 引用状态说明
 
 - `entry`：场景、Prefab 或可从项目元数据发现的入口类资源。

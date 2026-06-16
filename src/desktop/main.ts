@@ -45,7 +45,7 @@ async function createWindow(): Promise<void> {
     }
   });
 
-  await window.loadFile(path.join(process.cwd(), "src", "desktop", "index.html"));
+  await window.loadFile(path.join(__dirname, "index.html"));
 }
 
 ipcMain.handle("project:select", () => service.selectProject());
