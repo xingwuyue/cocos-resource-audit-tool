@@ -1,6 +1,28 @@
 import type { AuditResult, AuditRow, ReferenceStatus, ResourceCategory } from "../domain.js";
-import { CATEGORY_LABELS } from "../domain.js";
 import { formatBytes } from "../format.js";
+
+export const DESKTOP_CATEGORY_LABELS: Record<ResourceCategory, string> = {
+  texture: "贴图",
+  audio: "音频",
+  animation: "动画",
+  model: "模型",
+  scene: "场景",
+  prefab: "预制体",
+  "material-shader": "材质 / 着色器",
+  font: "字体",
+  video: "视频",
+  data: "数据",
+  script: "脚本",
+  other: "其他"
+};
+
+export const DESKTOP_REFERENCE_STATUS_LABELS: Record<ReferenceStatus, string> = {
+  entry: "入口资源",
+  referenced: "已引用",
+  unreferenced: "未发现引用",
+  "no-meta": "缺少 Meta",
+  unknown: "无法判断"
+};
 
 export interface DashboardFilters {
   category?: ResourceCategory | "all";
@@ -65,7 +87,7 @@ function createCategorySummaries(result: AuditResult): CategorySummary[] {
   return [...byCategory.entries()]
     .map(([category, value]) => ({
       category,
-      label: CATEGORY_LABELS[category],
+      label: DESKTOP_CATEGORY_LABELS[category],
       count: value.count,
       sizeBytes: value.sizeBytes,
       humanSize: formatBytes(value.sizeBytes),

@@ -50,7 +50,7 @@ async function createWindow(): Promise<void> {
     height: 820,
     minWidth: 980,
     minHeight: 640,
-    title: "Cocos Resource Audit",
+    title: "Cocos 资源审计工具",
     backgroundColor: "#f6f7f9",
     webPreferences: {
       contextIsolation: true,

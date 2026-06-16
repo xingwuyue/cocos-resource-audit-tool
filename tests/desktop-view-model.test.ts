@@ -61,12 +61,13 @@ describe("createDashboardModel", () => {
     });
     expect(model.categories.map((category) => ({
       category: category.category,
+      label: category.label,
       count: category.count,
       sizeBytes: category.sizeBytes,
       percentOfTotal: category.percentOfTotal
     }))).toEqual([
-      { category: "texture", count: 2, sizeBytes: 2_500, percentOfTotal: "71.43%" },
-      { category: "audio", count: 1, sizeBytes: 1_000, percentOfTotal: "28.57%" }
+      { category: "texture", label: "贴图", count: 2, sizeBytes: 2_500, percentOfTotal: "71.43%" },
+      { category: "audio", label: "音频", count: 1, sizeBytes: 1_000, percentOfTotal: "28.57%" }
     ]);
   });
 

@@ -1,7 +1,6 @@
 import type { AuditResult, ReferenceStatus, ResourceCategory } from "../domain.js";
-import { CATEGORY_LABELS } from "../domain.js";
 import type { DashboardFilters } from "./view-model.js";
-import { createDashboardModel } from "./view-model.js";
+import { createDashboardModel, DESKTOP_CATEGORY_LABELS, DESKTOP_REFERENCE_STATUS_LABELS } from "./view-model.js";
 
 type AppState = {
   projectPath: string | null;
@@ -42,34 +41,34 @@ elements.chooseProject.addEventListener("click", async () => {
   state.projectPath = selectedPath;
   state.outputDirectory = null;
   state.result = null;
-  setStatus("Project selected. Run an audit to inspect resources.");
+  setStatus("项目目录已选择，可以开始审计。");
   render();
 });
 
 elements.runAudit.addEventListener("click", async () => {
   if (!state.projectPath) {
-    setStatus("Select a Cocos Creator project folder first.", true);
+    setStatus("请选择 Cocos Creator 项目目录。", true);
     return;
   }
 
-  await runBusy("Scanning resources...", async () => {
+  await runBusy("正在扫描资源...", async () => {
     state.result = await window.cocosAudit.runAudit(state.projectPath as string);
     state.outputDirectory = null;
-    setStatus("Audit complete. Review the table or export reports.");
+    setStatus("审计完成，可以查看表格或导出报告。");
     render();
   });
 });
 
 elements.exportReports.addEventListener("click", async () => {
   if (!state.result) {
-    setStatus("Run an audit before exporting reports.", true);
+    setStatus("请先完成审计，再导出报告。", true);
     return;
   }
 
-  await runBusy("Exporting reports...", async () => {
+  await runBusy("正在导出报告...", async () => {
     const exported = await window.cocosAudit.exportReports(state.result as AuditResult);
     state.outputDirectory = exported.outputDirectory;
-    setStatus(`Reports exported to ${exported.outputDirectory}`);
+    setStatus(`报告已导出到 ${exported.outputDirectory}`);
     render();
   });
 });
@@ -95,25 +94,25 @@ elements.search.addEventListener("input", () => {
 });
 
 function initialiseFilters(): void {
-  addOption(elements.categoryFilter, "all", "All categories");
-  for (const [category, label] of Object.entries(CATEGORY_LABELS)) {
+  addOption(elements.categoryFilter, "all", "全部分类");
+  for (const [category, label] of Object.entries(DESKTOP_CATEGORY_LABELS)) {
     addOption(elements.categoryFilter, category, label);
   }
 
-  addOption(elements.statusFilter, "all", "All statuses");
+  addOption(elements.statusFilter, "all", "全部状态");
   for (const status of ["entry", "referenced", "unreferenced", "no-meta", "unknown"]) {
-    addOption(elements.statusFilter, status, status);
+    addOption(elements.statusFilter, status, DESKTOP_REFERENCE_STATUS_LABELS[status as ReferenceStatus]);
   }
 }
 
 function render(): void {
-  elements.projectPath.textContent = state.projectPath ?? "No project selected";
+  elements.projectPath.textContent = state.projectPath ?? "未选择项目";
   elements.runAudit.disabled = !state.projectPath;
   elements.exportReports.disabled = !state.result;
   elements.openOutput.disabled = !state.outputDirectory;
 
   if (!state.result) {
-    elements.summary.innerHTML = `<div class="empty">Select a project folder and run an audit.</div>`;
+    elements.summary.innerHTML = `<div class="empty">请选择项目目录并开始审计。</div>`;
     elements.categories.innerHTML = "";
     elements.rows.innerHTML = "";
     elements.warnings.innerHTML = "";
@@ -122,11 +121,11 @@ function render(): void {
 
   const model = createDashboardModel(state.result, state.filters);
   elements.summary.innerHTML = `
-    <div class="metric"><span>Total size</span><strong>${escapeHtml(model.summary.totalSize)}</strong></div>
-    <div class="metric"><span>Files</span><strong>${model.summary.fileCount}</strong></div>
-    <div class="metric"><span>Referenced</span><strong>${model.summary.referencedCount}</strong></div>
-    <div class="metric"><span>Unreferenced</span><strong>${model.summary.unreferencedCount}</strong></div>
-    <div class="metric"><span>Warnings</span><strong>${model.summary.warningCount}</strong></div>
+    <div class="metric"><span>总大小</span><strong>${escapeHtml(model.summary.totalSize)}</strong></div>
+    <div class="metric"><span>文件数量</span><strong>${model.summary.fileCount}</strong></div>
+    <div class="metric"><span>已引用</span><strong>${model.summary.referencedCount}</strong></div>
+    <div class="metric"><span>未发现引用</span><strong>${model.summary.unreferencedCount}</strong></div>
+    <div class="metric"><span>警告数量</span><strong>${model.summary.warningCount}</strong></div>
   `;
   elements.categories.innerHTML = renderCategories(model.categories);
   elements.rows.innerHTML = renderRows(model.rows);
@@ -134,36 +133,36 @@ function render(): void {
 }
 
 function renderCategories(categories: ReturnType<typeof createDashboardModel>["categories"]): string {
-  if (categories.length === 0) return `<div class="empty">No categories.</div>`;
+  if (categories.length === 0) return `<div class="empty">暂无分类。</div>`;
   return categories.map((category) => `
     <div class="category-row">
-      <div><strong>${escapeHtml(category.label)}</strong><span>${category.count} files</span></div>
+      <div><strong>${escapeHtml(category.label)}</strong><span>${category.count} 个文件</span></div>
       <div>${escapeHtml(category.humanSize)} · ${escapeHtml(category.percentOfTotal)}</div>
     </div>
   `).join("");
 }
 
 function renderRows(rows: AuditResult["rows"]): string {
-  if (rows.length === 0) return `<div class="empty">No rows match the current filters.</div>`;
+  if (rows.length === 0) return `<div class="empty">没有符合当前筛选条件的资源。</div>`;
   return `
     <table>
       <thead>
         <tr>
-          <th>Path</th>
-          <th>Category</th>
-          <th>Size</th>
-          <th>Status</th>
+          <th>资源路径</th>
+          <th>资源类型</th>
+          <th>大小</th>
+          <th>引用状态</th>
           <th>UUID</th>
-          <th>Refs</th>
+          <th>引用数</th>
         </tr>
       </thead>
       <tbody>
         ${rows.map((row) => `
           <tr>
             <td><code>${escapeHtml(row.relativePath)}</code></td>
-            <td>${escapeHtml(CATEGORY_LABELS[row.category])}</td>
+            <td>${escapeHtml(DESKTOP_CATEGORY_LABELS[row.category])}</td>
             <td>${escapeHtml(row.humanSize)}</td>
-            <td><span class="status-pill">${escapeHtml(row.referenceStatus)}</span></td>
+            <td><span class="status-pill">${escapeHtml(DESKTOP_REFERENCE_STATUS_LABELS[row.referenceStatus])}</span></td>
             <td><code>${escapeHtml(row.uuid ?? "")}</code></td>
             <td>${row.referenceSourceCount}</td>
           </tr>
@@ -174,14 +173,29 @@ function renderRows(rows: AuditResult["rows"]): string {
 }
 
 function renderWarnings(warnings: AuditResult["warnings"]): string {
-  if (warnings.length === 0) return `<div class="empty">No warnings.</div>`;
+  if (warnings.length === 0) return `<div class="empty">暂无警告。</div>`;
   return warnings.map((warning) => `
     <div class="warning-row">
       <strong>${escapeHtml(warning.code)}</strong>
       <span>${escapeHtml(warning.path ?? "")}</span>
-      <p>${escapeHtml(warning.message)}</p>
+      <p>${escapeHtml(formatWarningMessage(warning.code))}</p>
     </div>
   `).join("");
+}
+
+function formatWarningMessage(code: AuditResult["warnings"][number]["code"]): string {
+  switch (code) {
+    case "missing-meta":
+      return "资源缺少对应的 .meta 文件。";
+    case "invalid-meta":
+      return ".meta 文件无法解析。";
+    case "text-decode-failed":
+      return "文本文件解码失败，相关引用可能无法识别。";
+    case "unknown-reference":
+      return "发现未匹配到已扫描资源的 UUID 引用。";
+    case "project-validation":
+      return "项目目录校验失败。";
+  }
 }
 
 async function runBusy(message: string, action: () => Promise<void>): Promise<void> {

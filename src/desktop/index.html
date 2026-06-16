@@ -1,42 +1,42 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Cocos Resource Audit</title>
+    <title>Cocos 资源审计工具</title>
     <link rel="stylesheet" href="./styles.css">
   </head>
   <body>
     <header class="toolbar">
       <div class="project">
-        <span>Project</span>
-        <strong id="projectPath">No project selected</strong>
+        <span>项目目录</span>
+        <strong id="projectPath">未选择项目</strong>
       </div>
-      <button id="chooseProject" type="button">Choose Folder</button>
-      <button id="runAudit" type="button" disabled>Run Audit</button>
-      <button id="exportReports" type="button" disabled>Export Reports</button>
-      <button id="openOutput" type="button" disabled>Open Output</button>
+      <button id="chooseProject" type="button">选择目录</button>
+      <button id="runAudit" type="button" disabled>开始审计</button>
+      <button id="exportReports" type="button" disabled>导出报告</button>
+      <button id="openOutput" type="button" disabled>打开目录</button>
     </header>
 
     <main>
-      <section class="status-line" id="status">Select a Cocos Creator project folder to begin.</section>
+      <section class="status-line" id="status">请选择 Cocos Creator 项目目录。</section>
 
       <section class="summary" id="summary"></section>
 
       <section class="workspace">
         <aside>
-          <h2>Categories</h2>
+          <h2>资源分类</h2>
           <div id="categories"></div>
 
-          <h2>Warnings</h2>
+          <h2>警告</h2>
           <div id="warnings"></div>
         </aside>
 
         <section class="table-area">
           <div class="filters">
-            <select id="categoryFilter" aria-label="Category filter"></select>
-            <select id="statusFilter" aria-label="Reference status filter"></select>
-            <input id="search" type="search" placeholder="Search path or file name">
+            <select id="categoryFilter" aria-label="资源分类筛选"></select>
+            <select id="statusFilter" aria-label="引用状态筛选"></select>
+            <input id="search" type="search" placeholder="搜索路径或文件名">
           </div>
           <div id="rows"></div>
         </section>
