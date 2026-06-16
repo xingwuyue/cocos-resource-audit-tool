@@ -22,7 +22,14 @@ describe("runCli", () => {
     await writeFixtureFile(tempRoot, "assets/hero.png.meta", JSON.stringify({ uuid: "hero-uuid" }));
 
     const outputDir = path.join(tempRoot, "reports");
-    const exitCode = await runCli(["node", "cocos-resource-audit", "--project", tempRoot, "--out", outputDir]);
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    let exitCode: number;
+    try {
+      exitCode = await runCli(["node", "cocos-resource-audit", "--project", tempRoot, "--out", outputDir]);
+    } finally {
+      logSpy.mockRestore();
+    }
 
     expect(exitCode).toBe(0);
     await expect(access(path.join(outputDir, "resource-audit.html"))).resolves.toBeUndefined();
