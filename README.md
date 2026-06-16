@@ -40,6 +40,22 @@ npx cocos-resource-audit-tool --project D:\GameProject --out reports
 - `reports/resource-audit.html`
 - `reports/resource-audit.csv`
 
+## 一键启动
+
+Windows 下可以直接双击仓库根目录的 `run-audit.bat`：
+
+1. 双击 `run-audit.bat`。
+2. 输入 Cocos Creator 项目目录，例如 `D:\GameProject`。
+3. 等待脚本自动安装依赖、构建并生成报告。
+4. 完成后会自动打开 `reports/resource-audit.html`。
+
+也可以把 Cocos 项目文件夹拖到 `run-audit.bat` 上，或在命令行中指定路径：
+
+```bat
+run-audit.bat "D:\GameProject"
+run-audit.bat "D:\GameProject" "D:\AuditReports"
+```
+
 ## 引用状态说明
 
 - `entry`：场景、Prefab 或可从项目元数据发现的入口类资源。
