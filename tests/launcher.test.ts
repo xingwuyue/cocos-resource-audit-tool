@@ -39,6 +39,8 @@ describe('Electron desktop launcher', () => {
     expect(main).toContain('BrowserWindow');
     expect(main).toContain('path.join(__dirname, "index.html")');
     expect(main).not.toContain('"src", "desktop", "index.html"');
+    expect(main).toContain('cocos-resource-audit-desktop.log');
+    expect(main).toContain('app.whenReady().then');
     expect(preload).toContain('contextBridge');
     expect(html).toContain('Cocos Resource Audit');
     expect(html).toContain('src="./renderer.js"');
