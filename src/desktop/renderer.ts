@@ -18,6 +18,8 @@ const state: AppState = {
 
 const elements = {
   projectPath: getElement("projectPath"),
+  manualProjectPath: getInput("manualProjectPath"),
+  useManualPath: getButton("useManualPath"),
   chooseProject: getButton("chooseProject"),
   runAudit: getButton("runAudit"),
   exportReports: getButton("exportReports"),
@@ -36,13 +38,30 @@ initialiseFilters();
 render();
 
 elements.chooseProject.addEventListener("click", async () => {
-  const selectedPath = await window.cocosAudit.selectProject();
-  if (!selectedPath) return;
-  state.projectPath = selectedPath;
-  state.outputDirectory = null;
-  state.result = null;
-  setStatus("项目目录已选择，可以开始审计。");
-  render();
+  setStatus("正在打开目录选择窗口...");
+  await runBusy("正在打开目录选择窗口...", async () => {
+    const selectedPath = await window.cocosAudit.selectProject();
+    if (!selectedPath) {
+      setStatus("未选择目录。你也可以手动输入项目目录。");
+      return;
+    }
+    applyProjectPath(selectedPath);
+  });
+});
+
+elements.useManualPath.addEventListener("click", () => {
+  const projectPath = elements.manualProjectPath.value.trim();
+  if (!projectPath) {
+    setStatus("请先输入 Cocos Creator 项目目录。", true);
+    return;
+  }
+  applyProjectPath(projectPath);
+});
+
+elements.manualProjectPath.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    elements.useManualPath.click();
+  }
 });
 
 elements.runAudit.addEventListener("click", async () => {
@@ -107,6 +126,9 @@ function initialiseFilters(): void {
 
 function render(): void {
   elements.projectPath.textContent = state.projectPath ?? "未选择项目";
+  if (state.projectPath && elements.manualProjectPath.value !== state.projectPath) {
+    elements.manualProjectPath.value = state.projectPath;
+  }
   elements.runAudit.disabled = !state.projectPath;
   elements.exportReports.disabled = !state.result;
   elements.openOutput.disabled = !state.outputDirectory;
@@ -130,6 +152,15 @@ function render(): void {
   elements.categories.innerHTML = renderCategories(model.categories);
   elements.rows.innerHTML = renderRows(model.rows);
   elements.warnings.innerHTML = renderWarnings(model.warnings);
+}
+
+function applyProjectPath(projectPath: string): void {
+  state.projectPath = projectPath;
+  state.outputDirectory = null;
+  state.result = null;
+  elements.manualProjectPath.value = projectPath;
+  setStatus("项目目录已设置，可以开始审计。");
+  render();
 }
 
 function renderCategories(categories: ReturnType<typeof createDashboardModel>["categories"]): string {
@@ -212,6 +243,7 @@ async function runBusy(message: string, action: () => Promise<void>): Promise<vo
 
 function setBusy(isBusy: boolean): void {
   elements.chooseProject.disabled = isBusy;
+  elements.useManualPath.disabled = isBusy;
   elements.runAudit.disabled = isBusy || !state.projectPath;
   elements.exportReports.disabled = isBusy || !state.result;
 }

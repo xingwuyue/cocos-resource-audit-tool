@@ -42,6 +42,7 @@ describe('Electron desktop launcher', () => {
     expect(main).toContain('cocos-resource-audit-desktop.log');
     expect(main).toContain('app.whenReady().then');
     expect(main).toContain('Cocos 资源审计工具');
+    expect(main).toContain('ipc-project-select');
     expect(preload).toContain('contextBridge');
     expect(html).toContain('Cocos 资源审计工具');
     expect(html).toContain('src="./renderer.js"');

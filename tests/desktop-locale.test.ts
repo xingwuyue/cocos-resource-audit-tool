@@ -9,6 +9,8 @@ describe("desktop Simplified Chinese locale", () => {
     expect(html).toContain('lang="zh-CN"');
     expect(html).toContain("<title>Cocos 资源审计工具</title>");
     expect(html).toContain("选择目录");
+    expect(html).toContain("手动输入项目目录");
+    expect(html).toContain("使用路径");
     expect(html).toContain("开始审计");
     expect(html).toContain("导出报告");
     expect(html).toContain("打开目录");
@@ -23,6 +25,9 @@ describe("desktop Simplified Chinese locale", () => {
 
     expect(renderer).toContain("全部分类");
     expect(renderer).toContain("全部状态");
+    expect(renderer).toContain("manualProjectPath");
+    expect(renderer).toContain("useManualPath");
+    expect(renderer).toContain("正在打开目录选择窗口...");
     expect(renderer).toContain("请选择 Cocos Creator 项目目录。");
     expect(renderer).toContain("资源路径");
     expect(renderer).toContain("资源类型");

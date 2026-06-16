@@ -23,14 +23,16 @@ process.on("unhandledRejection", (reason) => log("unhandledRejection", reason));
 
 const service = createDesktopService({
   chooseDirectory: async () => {
+    log("dialog-open-start");
     const options: OpenDialogOptions = {
       properties: ["openDirectory"],
-      title: "Select a folder"
+      title: "选择 Cocos Creator 项目目录"
     };
     const focusedWindow = BrowserWindow.getFocusedWindow();
     const result = focusedWindow
       ? await dialog.showOpenDialog(focusedWindow, options)
       : await dialog.showOpenDialog(options);
+    log(`dialog-open-finished canceled=${result.canceled} paths=${result.filePaths.length}`);
 
     return result.canceled ? null : result.filePaths[0] ?? null;
   },
@@ -75,7 +77,10 @@ async function createWindow(): Promise<void> {
   log("window-load-complete");
 }
 
-ipcMain.handle("project:select", () => service.selectProject());
+ipcMain.handle("project:select", async () => {
+  log("ipc-project-select");
+  return service.selectProject();
+});
 ipcMain.handle("audit:run", (_event, projectPath: string) => service.runAudit(projectPath));
 ipcMain.handle("reports:export", (_event, result) => service.exportReports(result));
 ipcMain.handle("folder:open", (_event, outputDirectory: string) => service.openOutputDirectory(outputDirectory));

@@ -67,6 +67,17 @@ main {
   padding: 16px;
 }
 
+.path-entry {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.path-entry input {
+  padding: 0 10px;
+}
+
 .status-line {
   margin-bottom: 12px;
   color: #36516f;
