@@ -56,6 +56,26 @@ run-audit.bat "D:\GameProject"
 run-audit.bat "D:\GameProject" "D:\AuditReports"
 ```
 
+## 前端界面
+
+Windows 下可以双击仓库根目录的 `run-desktop.bat` 启动桌面前端界面。
+
+也可以使用命令行启动：
+
+```bash
+npm install
+npm run desktop:dev
+```
+
+前端界面支持：
+
+- 选择 Cocos Creator 项目目录。
+- 在界面中运行资源体积审计。
+- 查看总大小、资源数量、分类统计、警告和资源明细表。
+- 按资源类型、引用状态和路径关键字筛选。
+- 导出 `resource-audit.html` 和 `resource-audit.csv`。
+- 打开导出目录。
+
 ## 引用状态说明
 
 - `entry`：场景、Prefab 或可从项目元数据发现的入口类资源。

@@ -32,4 +32,12 @@ describe('Electron desktop launcher', () => {
     expect(preload).toContain('contextBridge');
     expect(html).toContain('Cocos Resource Audit');
   });
+
+  test('provides a Windows desktop startup script', async () => {
+    const script = await readFile(path.join(process.cwd(), 'run-desktop.bat'), 'utf8');
+
+    expect(script).toContain('npm install');
+    expect(script).toContain('npm run desktop:dev');
+    expect(script).toContain('--help');
+  });
 });
